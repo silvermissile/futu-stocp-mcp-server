@@ -119,8 +119,8 @@ python -m futu_stock_mcp_server.server
 
 2. Connect to the server using an MCP client:
 ```python
-from modelcontextprotocol import ClientSession, StdioServerParameters
-from modelcontextprotocol.client.stdio import stdio_client
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
 
 async def main():
     server_params = StdioServerParameters(
