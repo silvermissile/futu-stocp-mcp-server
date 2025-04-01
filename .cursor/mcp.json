@@ -4,14 +4,14 @@
       "command": "uv",
       "args": [
         "--directory",
-        "/Users/xingege/Desktop/futu-mcp-server",
+        "/Users/yanghengxing/Desktop/futu-stock-mcp-server",
         "run",
         "src/futu_stock_mcp_server/server.py"
       ],
       "env": {
         "FUTU_HOST": "127.0.0.1",
         "FUTU_PORT": "11111",
-        "PYTHONPATH": "/Users/xingege/Desktop/futu-mcp-server/src"
+        "PYTHONPATH": "/Users/yanghengxing/Desktop/futu-stock-mcp-server/src"
       }
     }
   }

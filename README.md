@@ -190,6 +190,82 @@ if __name__ == "__main__":
 - `get_security_info`: Get security information
 - `get_security_list`: Get security list
 
+### Stock Filter Commands
+
+#### get_stock_filter
+Filter stocks based on various conditions.
+
+Parameters:
+- `base_filters` (optional): List of basic stock filters
+  ```python
+  {
+      "field_name": int,  # StockField enum value
+      "filter_min": float,  # Optional minimum value
+      "filter_max": float,  # Optional maximum value
+      "is_no_filter": bool,  # Optional, whether to skip filtering
+      "sort_dir": int  # Optional, sort direction
+  }
+  ```
+- `accumulate_filters` (optional): List of accumulate filters
+  ```python
+  {
+      "field_name": int,  # AccumulateField enum value
+      "filter_min": float,
+      "filter_max": float,
+      "is_no_filter": bool,
+      "sort_dir": int,
+      "days": int  # Required, number of days to accumulate
+  }
+  ```
+- `financial_filters` (optional): List of financial filters
+  ```python
+  {
+      "field_name": int,  # FinancialField enum value
+      "filter_min": float,
+      "filter_max": float,
+      "is_no_filter": bool,
+      "sort_dir": int,
+      "quarter": int  # Required, financial quarter
+  }
+  ```
+- `market` (optional): Market code (e.g. "HK.Motherboard", "US.NASDAQ")
+- `page` (optional): Page number, starting from 1 (default: 1)
+- `page_size` (optional): Number of results per page, max 200 (default: 200)
+
+Supported Market Codes:
+- `HK.Motherboard`: Hong Kong Main Board
+- `HK.GEM`: Hong Kong GEM
+- `HK.BK1911`: H-Share Main Board
+- `HK.BK1912`: H-Share GEM
+- `US.NYSE`: NYSE
+- `US.AMEX`: AMEX
+- `US.NASDAQ`: NASDAQ
+- `SH.3000000`: Shanghai Main Board
+- `SZ.3000001`: Shenzhen Main Board
+- `SZ.3000004`: Shenzhen ChiNext
+
+Example:
+```python
+# Get stocks with price between 10 and 50 HKD in Hong Kong Main Board
+filters = {
+    "base_filters": [{
+        "field_name": 5,  # Current price
+        "filter_min": 10.0,
+        "filter_max": 50.0
+    }],
+    "market": "HK.Motherboard"
+}
+result = await client.get_stock_filter(**filters)
+```
+
+Notes:
+- Limited to 10 requests per 30 seconds
+- Each page returns maximum 200 results
+- Recommended to use no more than 250 filter conditions
+- Maximum 10 accumulate conditions of the same type
+- Dynamic data sorting (like current price) may change between pages
+- Cannot compare different types of indicators (e.g. MA5 vs EMA10)
+
 ## Resources
 
 ### Market Data
