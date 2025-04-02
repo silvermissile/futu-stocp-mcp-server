@@ -339,4 +339,217 @@ async def new_prompt(param1: str) -> str:
 
 ## License
 
-MIT License 
+MIT License
+
+## Available MCP Functions
+
+### Market Data Functions
+
+#### get_stock_quote
+Get stock quote data for given symbols.
+```python
+symbols = ["HK.00700", "US.AAPL", "SH.600519"]
+result = await session.call_tool("get_stock_quote", {"symbols": symbols})
+```
+Returns quote data including price, volume, turnover, etc.
+
+#### get_market_snapshot
+Get market snapshot for given symbols.
+```python
+symbols = ["HK.00700", "US.AAPL", "SH.600519"]
+result = await session.call_tool("get_market_snapshot", {"symbols": symbols})
+```
+Returns comprehensive market data including price, volume, bid/ask prices, etc.
+
+#### get_cur_kline
+Get current K-line data.
+```python
+result = await session.call_tool("get_cur_kline", {
+    "symbol": "HK.00700",
+    "ktype": "K_1M",  # K_1M, K_5M, K_15M, K_30M, K_60M, K_DAY, K_WEEK, K_MON
+    "count": 100
+})
+```
+
+#### get_history_kline
+Get historical K-line data.
+```python
+result = await session.call_tool("get_history_kline", {
+    "symbol": "HK.00700",
+    "ktype": "K_DAY",
+    "start": "2024-01-01",
+    "end": "2024-03-31"
+})
+```
+
+#### get_rt_data
+Get real-time trading data.
+```python
+result = await session.call_tool("get_rt_data", {"symbol": "HK.00700"})
+```
+
+#### get_ticker
+Get ticker data (detailed trades).
+```python
+result = await session.call_tool("get_ticker", {"symbol": "HK.00700"})
+```
+
+#### get_order_book
+Get order book data.
+```python
+result = await session.call_tool("get_order_book", {"symbol": "HK.00700"})
+```
+
+#### get_broker_queue
+Get broker queue data.
+```python
+result = await session.call_tool("get_broker_queue", {"symbol": "HK.00700"})
+```
+
+### Subscription Functions
+
+#### subscribe
+Subscribe to real-time data.
+```python
+result = await session.call_tool("subscribe", {
+    "symbols": ["HK.00700", "US.AAPL"],
+    "sub_types": ["QUOTE", "TICKER", "K_1M"]
+})
+```
+Subscription types:
+- "QUOTE": Basic quote
+- "ORDER_BOOK": Order book
+- "TICKER": Trades
+- "RT_DATA": Real-time data
+- "BROKER": Broker queue
+- "K_1M" to "K_MON": K-line data
+
+#### unsubscribe
+Unsubscribe from real-time data.
+```python
+result = await session.call_tool("unsubscribe", {
+    "symbols": ["HK.00700", "US.AAPL"],
+    "sub_types": ["QUOTE", "TICKER"]
+})
+```
+
+### Options Functions
+
+#### get_option_chain
+Get option chain data.
+```python
+result = await session.call_tool("get_option_chain", {
+    "symbol": "HK.00700",
+    "start": "2024-04-01",
+    "end": "2024-06-30"
+})
+```
+
+#### get_option_expiration_date
+Get option expiration dates.
+```python
+result = await session.call_tool("get_option_expiration_date", {
+    "symbol": "HK.00700"
+})
+```
+
+#### get_option_condor
+Get option condor strategy data.
+```python
+result = await session.call_tool("get_option_condor", {
+    "symbol": "HK.00700",
+    "expiry": "2024-06-30",
+    "strike_price": 350.0
+})
+```
+
+#### get_option_butterfly
+Get option butterfly strategy data.
+```python
+result = await session.call_tool("get_option_butterfly", {
+    "symbol": "HK.00700",
+    "expiry": "2024-06-30",
+    "strike_price": 350.0
+})
+```
+
+### Account Functions
+
+#### get_account_list
+Get account list.
+```python
+result = await session.call_tool("get_account_list", {"random_string": "dummy"})
+```
+
+#### get_funds
+Get account funds information.
+```python
+result = await session.call_tool("get_funds", {"random_string": "dummy"})
+```
+
+#### get_positions
+Get account positions.
+```python
+result = await session.call_tool("get_positions", {"random_string": "dummy"})
+```
+
+#### get_max_power
+Get maximum trading power.
+```python
+result = await session.call_tool("get_max_power", {"random_string": "dummy"})
+```
+
+#### get_margin_ratio
+Get margin ratio for a security.
+```python
+result = await session.call_tool("get_margin_ratio", {"symbol": "HK.00700"})
+```
+
+### Market Information Functions
+
+#### get_market_state
+Get market state.
+```python
+result = await session.call_tool("get_market_state", {"market": "HK"})
+```
+Available markets: "HK", "US", "SH", "SZ"
+
+#### get_security_info
+Get security information.
+```python
+result = await session.call_tool("get_security_info", {
+    "market": "HK",
+    "code": "00700"
+})
+```
+
+#### get_security_list
+Get security list for a market.
+```python
+result = await session.call_tool("get_security_list", {"market": "HK"})
+```
+
+#### get_stock_filter
+Get filtered stock list based on conditions.
+```python
+result = await session.call_tool("get_stock_filter", {
+    "market": "HK.Motherboard",
+    "base_filters": [{
+        "field_name": 1,  # Price
+        "filter_min": 10.0,
+        "filter_max": 50.0,
+        "sort_dir": 1  # Ascending
+    }],
+    "page": 1,
+    "page_size": 50
+})
+```
+
+### Time Function
+
+#### get_current_time
+Get current server time.
+```python
+result = await session.call_tool("get_current_time", {"random_string": "dummy"})
+```
+Returns timestamp, formatted datetime, date, time and timezone. 

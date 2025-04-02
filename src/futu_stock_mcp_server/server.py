@@ -16,6 +16,7 @@ import signal
 import fcntl
 import psutil
 import time
+from datetime import datetime
 
 # Get the project root directory and add it to Python path
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -1080,6 +1081,27 @@ async def get_stock_filter(base_filters: List[Dict[str, Any]] = None,
 
     ret, data = quote_ctx.get_stock_filter(req)
     return data.to_dict() if ret == RET_OK else {'error': data}
+
+@mcp.tool()
+async def get_current_time() -> Dict[str, Any]:
+    """Get current time information
+    
+    Returns:
+        Dict containing time information including:
+        - timestamp: Unix timestamp in seconds
+        - datetime: Formatted datetime string (YYYY-MM-DD HH:mm:ss)
+        - date: Date string (YYYY-MM-DD)
+        - time: Time string (HH:mm:ss)
+        - timezone: Local timezone name
+    """
+    now = datetime.now()
+    return {
+        'timestamp': int(now.timestamp()),
+        'datetime': now.strftime('%Y-%m-%d %H:%M:%S'),
+        'date': now.strftime('%Y-%m-%d'),
+        'time': now.strftime('%H:%M:%S'),
+        'timezone': datetime.now().astimezone().tzname()
+    }
 
 if __name__ == "__main__":
     try:
