@@ -1,6 +1,43 @@
 # Futu Stock MCP Server
 
-A Model Context Protocol (MCP) server for accessing Futu OpenAPI functionality.
+[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![OpenAPI](https://img.shields.io/badge/Futu-OpenAPI-orange)](https://openapi.futunn.com/futu-api-doc/)
+
+基于[模型上下文协议(MCP)](https://github.com/cursor-ai/model-context-protocol)的富途证券行情交易接口服务器。将富途OpenAPI功能以标准化的MCP协议提供给AI模型使用，支持行情订阅、数据查询等功能。
+
+## 🌟 特性
+
+- 🔌 完全兼容 MCP 2.0 协议标准
+- 📊 支持港股、美股、A股等市场的实时行情
+- 🔄 支持实时数据订阅和推送
+- 📈 支持K线、逐笔、买卖盘等多维度数据
+- 🔒 安全的API调用和数据访问机制
+- 🛠 提供完整的开发工具和示例代码
+
+## ⚠️ 前置要求
+
+在使用本项目之前，您需要：
+
+1. 拥有富途证券账户并开通OpenAPI权限
+2. 安装并运行富途的OpenD网关程序（[官方文档](https://openapi.futunn.com/futu-api-doc/intro/intro.html)）
+3. 根据您的需求订阅相应的行情权限
+
+## 🔒 安全提示
+
+- 请勿在代码中硬编码任何账号密码信息
+- 确保`.env`文件已添加到`.gitignore`中
+- 妥善保管您的API访问凭证
+- 遵守富途OpenAPI的使用条款和限制
+
+## 📝 免责声明
+
+本项目是一个开源工具，旨在简化富途OpenAPI的接入流程。使用本项目时请注意：
+
+1. 遵守相关法律法规和富途OpenAPI的使用条款
+2. 自行承担使用本项目进行交易的风险
+3. 本项目不提供任何投资建议
+4. 使用本项目前请确保您已获得所需的行情权限
 
 ## Features
 
