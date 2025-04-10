@@ -408,21 +408,52 @@ async def get_stock_quote(symbols: List[str]) -> Dict[str, Any]:
     
     Returns:
         Dict containing quote data including:
-        - code: Stock code
-        - name: Stock name
-        - last_price: Latest price
-        - open_price: Opening price
-        - high_price: Highest price
-        - low_price: Lowest price
-        - volume: Trading volume
-        - turnover: Trading amount
-        - turnover_rate: Turnover rate
-        - amplitude: Price amplitude
-        - dark_status: Dark pool status
-        - price_spread: Price spread
+        - quote_list: List of quote data entries, each containing:
+            - code: Stock code
+            - update_time: Update time (YYYY-MM-DD HH:mm:ss)
+            - last_price: Latest price
+            - open_price: Opening price
+            - high_price: Highest price
+            - low_price: Lowest price
+            - prev_close_price: Previous closing price
+            - volume: Trading volume
+            - turnover: Trading amount
+            - turnover_rate: Turnover rate
+            - amplitude: Price amplitude
+            - dark_status: Dark pool status (0: Normal)
+            - list_time: Listing date
+            - price_spread: Price spread
+            - stock_owner: Stock owner
+            - lot_size: Lot size
+            - sec_status: Security status
+        
+    Raises:
+        - INVALID_PARAM: Invalid parameter
+        - INVALID_CODE: Invalid stock code format
+        - GET_STOCK_QUOTE_FAILED: Failed to get stock quote
+        
+    Note:
+        - Stock quote contains latest market data
+        - Can request multiple stocks at once
+        - Does not include historical data
+        - Consider actual needs when selecting stocks
+        - Handle exceptions properly
     """
     ret, data = quote_ctx.get_stock_quote(symbols)
-    return handle_return_data(ret, data)
+    if ret != RET_OK:
+        return {'error': str(data)}
+    
+    # Convert DataFrame to dict if necessary
+    if hasattr(data, 'to_dict'):
+        result = {
+            'quote_list': data.to_dict('records')
+        }
+    else:
+        result = {
+            'quote_list': data
+        }
+    
+    return result
 
 @mcp.tool()
 async def get_market_snapshot(symbols: List[str]) -> Dict[str, Any]:
@@ -438,24 +469,56 @@ async def get_market_snapshot(symbols: List[str]) -> Dict[str, Any]:
     
     Returns:
         Dict containing snapshot data including:
-        - code: Stock code
-        - update_time: Update time
-        - last_price: Latest price
-        - open_price: Opening price
-        - high_price: Highest price
-        - low_price: Lowest price
-        - volume: Trading volume
-        - turnover: Trading amount
-        - turnover_rate: Turnover rate
-        - suspension: Whether trading is suspended
-        - listing_date: Listing date
-        - price_spread: Price spread
-        - lot_size: Lot size
-        - ask/bid_price: First 10 ask/bid prices
-        - ask/bid_volume: First 10 ask/bid volumes
+        - snapshot_list: List of snapshot data entries, each containing:
+            - code: Stock code
+            - update_time: Update time (YYYY-MM-DD HH:mm:ss)
+            - last_price: Latest price
+            - open_price: Opening price
+            - high_price: Highest price
+            - low_price: Lowest price
+            - prev_close_price: Previous closing price
+            - volume: Trading volume
+            - turnover: Trading amount
+            - turnover_rate: Turnover rate
+            - amplitude: Price amplitude
+            - dark_status: Dark pool status (0: Normal)
+            - list_time: Listing date
+            - price_spread: Price spread
+            - stock_owner: Stock owner
+            - lot_size: Lot size
+            - sec_status: Security status
+            - bid_price: List of bid prices
+            - bid_volume: List of bid volumes
+            - ask_price: List of ask prices
+            - ask_volume: List of ask volumes
+        
+    Raises:
+        - INVALID_PARAM: Invalid parameter
+        - INVALID_CODE: Invalid stock code format
+        - GET_MARKET_SNAPSHOT_FAILED: Failed to get market snapshot
+        
+    Note:
+        - Market snapshot contains latest market data
+        - Can request multiple stocks at once
+        - Does not include historical data
+        - Consider actual needs when selecting stocks
+        - Handle exceptions properly
     """
     ret, data = quote_ctx.get_market_snapshot(symbols)
-    return handle_return_data(ret, data)
+    if ret != RET_OK:
+        return {'error': str(data)}
+    
+    # Convert DataFrame to dict if necessary
+    if hasattr(data, 'to_dict'):
+        result = {
+            'snapshot_list': data.to_dict('records')
+        }
+    else:
+        result = {
+            'snapshot_list': data
+        }
+    
+    return result
 
 @mcp.tool()
 async def get_cur_kline(symbol: str, ktype: str, count: int = 100) -> Dict[str, Any]:
@@ -470,7 +533,6 @@ async def get_cur_kline(symbol: str, ktype: str, count: int = 100) -> Dict[str, 
             - SZ: Shenzhen stocks
         ktype: K-line type, options:
             - "K_1M": 1 minute
-            - "K_3M": 3 minutes
             - "K_5M": 5 minutes
             - "K_15M": 15 minutes
             - "K_30M": 30 minutes
@@ -485,25 +547,54 @@ async def get_cur_kline(symbol: str, ktype: str, count: int = 100) -> Dict[str, 
     
     Returns:
         Dict containing K-line data including:
-        - code: Stock code
-        - time_key: K-line time (yyyy-MM-dd HH:mm:ss)
-        - open: Opening price
-        - close: Closing price
-        - high: Highest price
-        - low: Lowest price
-        - volume: Trading volume
-        - turnover: Trading amount
-        - pe_ratio: Price-to-earnings ratio
-        - turnover_rate: Turnover rate
-        - change_rate: Price change rate
-        - last_close: Last closing price
+        - kline_list: List of K-line data entries, each containing:
+            - code: Stock code
+            - kline_type: K-line type
+            - update_time: Update time (YYYY-MM-DD HH:mm:ss)
+            - open_price: Opening price
+            - high_price: Highest price
+            - low_price: Lowest price
+            - close_price: Closing price
+            - volume: Trading volume
+            - turnover: Trading amount
+            - pe_ratio: Price-to-earnings ratio
+            - turnover_rate: Turnover rate
+            - timestamp: K-line time
+            - kline_status: K-line status (0: Normal)
+        
+    Raises:
+        - INVALID_PARAM: Invalid parameter
+        - INVALID_CODE: Invalid stock code format
+        - INVALID_SUBTYPE: Invalid K-line type
+        - GET_CUR_KLINE_FAILED: Failed to get K-line data
+        
+    Note:
+        - IMPORTANT: Must subscribe to the K-line data first using subscribe() with the corresponding K-line type
+        - K-line data contains latest market data
+        - Can request multiple stocks at once
+        - Different periods have different update frequencies
+        - Consider actual needs when selecting stocks and K-line types
+        - Handle exceptions properly
     """
     ret, data = quote_ctx.get_cur_kline(
         code=symbol,
         ktype=ktype,
         num=count
     )
-    return handle_return_data(ret, data)
+    if ret != RET_OK:
+        return {'error': str(data)}
+    
+    # Convert DataFrame to dict if necessary
+    if hasattr(data, 'to_dict'):
+        result = {
+            'kline_list': data.to_dict('records')
+        }
+    else:
+        result = {
+            'kline_list': data
+        }
+    
+    return result
 
 @mcp.tool()
 async def get_history_kline(symbol: str, ktype: str, start: str, end: str, count: int = 100) -> Dict[str, Any]:
@@ -534,11 +625,14 @@ async def get_history_kline(symbol: str, ktype: str, start: str, end: str, count
     Note:
         - Limited to 30 stocks per 30 days
         - Used quota will be automatically released after 30 days
+        - Different K-line types have different update frequencies
+        - Historical data availability varies by market and stock
     
     Returns:
         Dict containing K-line data including:
         - code: Stock code
-        - time_key: K-line time (yyyy-MM-dd HH:mm:ss)
+        - kline_type: K-line type
+        - time_key: K-line time (YYYY-MM-DD HH:mm:ss)
         - open: Opening price
         - close: Closing price
         - high: Highest price
@@ -549,6 +643,12 @@ async def get_history_kline(symbol: str, ktype: str, start: str, end: str, count
         - turnover_rate: Turnover rate
         - change_rate: Price change rate
         - last_close: Last closing price
+        
+    Raises:
+        - INVALID_PARAM: Invalid parameter
+        - INVALID_CODE: Invalid stock code format
+        - INVALID_SUBTYPE: Invalid K-line type
+        - GET_HISTORY_KLINE_FAILED: Failed to get historical K-line data
     """
     ret, data, page_req_key = quote_ctx.request_history_kline(
         code=symbol,
@@ -597,16 +697,43 @@ async def get_rt_data(symbol: str) -> Dict[str, Any]:
     
     Returns:
         Dict containing real-time data including:
-        - code: Stock code
-        - time: Update time
-        - data_status: Data status
-        - price: Latest price
-        - volume: Trading volume
-        - turnover: Trading amount
-        - avg_price: Average price
+        - rt_data_list: List of real-time data entries, each containing:
+            - code: Stock code
+            - time: Time (HH:mm:ss)
+            - price: Latest price
+            - volume: Trading volume
+            - turnover: Trading amount
+            - avg_price: Average price
+            - timestamp: Update time (YYYY-MM-DD HH:mm:ss)
+            - rt_data_status: Real-time data status (0: Normal)
+        
+    Raises:
+        - INVALID_PARAM: Invalid parameter
+        - INVALID_CODE: Invalid stock code format
+        - GET_RT_DATA_FAILED: Failed to get real-time data
+        
+    Note:
+        - IMPORTANT: Must subscribe to RT_DATA first using subscribe()
+        - Real-time data is updated frequently
+        - Contains latest data only, not historical data
+        - Update frequency varies by market and stock
+        - Consider using callbacks for real-time processing
     """
     ret, data = quote_ctx.get_rt_data(symbol)
-    return handle_return_data(ret, data)
+    if ret != RET_OK:
+        return {'error': str(data)}
+    
+    # Convert DataFrame to dict if necessary
+    if hasattr(data, 'to_dict'):
+        result = {
+            'rt_data_list': data.to_dict('records')
+        }
+    else:
+        result = {
+            'rt_data_list': data
+        }
+    
+    return result
 
 @mcp.tool()
 async def get_ticker(symbol: str) -> Dict[str, Any]:
@@ -623,13 +750,34 @@ async def get_ticker(symbol: str) -> Dict[str, Any]:
     Returns:
         Dict containing ticker data including:
         - code: Stock code
-        - time: Deal time
+        - sequence: Sequence number
         - price: Deal price
         - volume: Deal volume
         - turnover: Deal amount
         - ticker_direction: Ticker direction
-        - sequence: Sequence number
-        - type: Ticker type
+            1: Bid order
+            2: Ask order
+            3: Neutral order
+        - ticker_type: Ticker type
+            1: Regular trade
+            2: Cancel trade
+            3: Trading at closing price
+            4: Off-exchange trade
+            5: After-hours trade
+        - timestamp: Deal time (YYYY-MM-DD HH:mm:ss)
+        - ticker_status: Ticker status (0: Normal)
+        
+    Raises:
+        - INVALID_PARAM: Invalid parameter
+        - INVALID_CODE: Invalid stock code format
+        - GET_RT_TICKER_FAILED: Failed to get ticker data
+        
+    Note:
+        - IMPORTANT: Must subscribe to TICKER first using subscribe()
+        - Ticker data is updated in real-time
+        - High update frequency, large data volume
+        - Update frequency varies by market and stock
+        - Consider using callbacks for real-time processing
     """
     ret, data = quote_ctx.get_ticker(symbol)
     return handle_return_data(ret, data)
@@ -649,10 +797,23 @@ async def get_order_book(symbol: str) -> Dict[str, Any]:
     Returns:
         Dict containing order book data including:
         - code: Stock code
-        - svr_recv_time_bid: Server receive time for bid
-        - svr_recv_time_ask: Server receive time for ask
-        - Bid: List of bid data [(price, volume, order_count, {}), ...]
-        - Ask: List of ask data [(price, volume, order_count, {}), ...]
+        - update_time: Update time (YYYY-MM-DD HH:mm:ss)
+        - bid_price: List of bid prices (up to 10 levels)
+        - bid_volume: List of bid volumes (up to 10 levels)
+        - ask_price: List of ask prices (up to 10 levels)
+        - ask_volume: List of ask volumes (up to 10 levels)
+        
+    Raises:
+        - INVALID_PARAM: Invalid parameter
+        - INVALID_CODE: Invalid stock code format
+        - GET_ORDER_BOOK_FAILED: Failed to get order book data
+        
+    Note:
+        - IMPORTANT: Must subscribe to ORDER_BOOK first using subscribe()
+        - Order book data is updated in real-time
+        - Contains latest bid/ask information only
+        - Number of price levels may vary by market
+        - Update frequency varies by market and stock
     """
     ret, data = quote_ctx.get_order_book(symbol)
     return handle_return_data(ret, data)
@@ -672,10 +833,28 @@ async def get_broker_queue(symbol: str) -> Dict[str, Any]:
     Returns:
         Dict containing broker queue data including:
         - code: Stock code
-        - svr_recv_time_bid: Server receive time for bid
-        - svr_recv_time_ask: Server receive time for ask
-        - bid_broker_queue: List of bid brokers [(broker_id, broker_name, broker_pos), ...]
-        - ask_broker_queue: List of ask brokers [(broker_id, broker_name, broker_pos), ...]
+        - update_time: Update time (YYYY-MM-DD HH:mm:ss)
+        - bid_broker_id: List of bid broker IDs
+        - bid_broker_name: List of bid broker names
+        - bid_broker_pos: List of bid broker positions
+        - ask_broker_id: List of ask broker IDs
+        - ask_broker_name: List of ask broker names
+        - ask_broker_pos: List of ask broker positions
+        - timestamp: Update timestamp
+        - broker_status: Broker queue status (0: Normal)
+        
+    Raises:
+        - INVALID_PARAM: Invalid parameter
+        - INVALID_CODE: Invalid stock code format
+        - GET_BROKER_QUEUE_FAILED: Failed to get broker queue data
+        
+    Note:
+        - IMPORTANT: Must subscribe to BROKER first using subscribe()
+        - Broker queue data is updated in real-time
+        - Shows broker information for both bid and ask sides
+        - Number of brokers may vary by market
+        - Update frequency varies by market and stock
+        - Mainly used for displaying broker trading activities
     """
     ret, data = quote_ctx.get_broker_queue(symbol)
     return handle_return_data(ret, data)
@@ -713,10 +892,18 @@ async def subscribe(symbols: List[str], sub_types: List[str]) -> Dict[str, Any]:
         - Maximum 100 symbols per request
         - Maximum 5 subscription types per request
         - Each socket can subscribe up to 500 symbols
+        - Data will be pushed through callbacks
+        - Consider unsubscribing when data is no longer needed
     
     Returns:
         Dict containing subscription result:
         - status: "success" or error message
+        
+    Raises:
+        - INVALID_PARAM: Invalid parameter
+        - INVALID_CODE: Invalid stock code format
+        - INVALID_SUBTYPE: Invalid subscription type
+        - SUBSCRIBE_FAILED: Failed to subscribe
     """
     for symbol in symbols:
         for sub_type in sub_types:
@@ -750,6 +937,16 @@ async def unsubscribe(symbols: List[str], sub_types: List[str]) -> Dict[str, Any
             - "K_DAY": Daily K-line
             - "K_WEEK": Weekly K-line
             - "K_MON": Monthly K-line
+            
+    Returns:
+        Dict containing unsubscription result:
+        - status: "success" or error message
+        
+    Raises:
+        - INVALID_PARAM: Invalid parameter
+        - INVALID_CODE: Invalid stock code format
+        - INVALID_SUBTYPE: Invalid subscription type
+        - UNSUBSCRIBE_FAILED: Failed to unsubscribe
     """
     for symbol in symbols:
         for sub_type in sub_types:
@@ -773,18 +970,37 @@ async def get_option_chain(symbol: str, start: str, end: str) -> Dict[str, Any]:
     
     Returns:
         Dict containing option chain data including:
-        - code: Option code
-        - name: Option name
-        - owner_stock_code: Underlying stock code
-        - strike_time: Strike time
-        - strike_price: Strike price
-        - suspension: Whether suspended
-        - stock_id: Stock ID
-        - lot_size: Lot size
-        - option_type: Option type (Call/Put)
-        - trade_time: Trading time
-        - expiry_time: Expiry time
-        - exercise_type: Exercise type (European/American)
+        - stock_code: Underlying stock code
+        - stock_name: Underlying stock name
+        - option_list: List of option contracts, each containing:
+            - option_code: Option code
+            - option_name: Option name
+            - option_type: Option type (CALL/PUT)
+            - strike_price: Strike price
+            - expiry_date: Expiry date
+            - last_price: Latest price
+            - volume: Trading volume
+            - open_interest: Open interest
+            - implied_volatility: Implied volatility
+            - delta: Delta value
+            - gamma: Gamma value
+            - theta: Theta value
+            - vega: Vega value
+            - update_time: Update time
+        
+    Raises:
+        - INVALID_PARAM: Invalid parameter
+        - INVALID_MARKET: Invalid market code
+        - INVALID_STOCKCODE: Invalid stock code
+        - INVALID_EXPIRYDATE: Invalid expiry date
+        - GET_OPTION_CHAIN_FAILED: Failed to get option chain
+        
+    Note:
+        - Option chain data is essential for options trading
+        - Contains both call and put options
+        - Includes Greeks for risk management
+        - Data is updated during trading hours
+        - Consider using with option expiration dates API
     """
     ret, data = quote_ctx.get_option_chain(symbol, start, end)
     return data.to_dict() if ret == RET_OK else {'error': data}
@@ -802,6 +1018,19 @@ async def get_option_expiration_date(symbol: str) -> Dict[str, Any]:
     Returns:
         Dict containing expiration dates:
         - strike_time: List of expiration dates in format "YYYY-MM-DD"
+        - option_expiry_info: Additional expiry information
+        
+    Raises:
+        - INVALID_PARAM: Invalid parameter
+        - INVALID_MARKET: Invalid market code
+        - INVALID_STOCKCODE: Invalid stock code
+        - GET_OPTION_EXPIRATION_FAILED: Failed to get expiration dates
+        
+    Note:
+        - Use this API before querying option chain
+        - Different stocks may have different expiry dates
+        - Expiry dates are typically on monthly/weekly cycles
+        - Not all stocks have listed options
     """
     ret, data = quote_ctx.get_option_expiration_date(symbol)
     return data.to_dict() if ret == RET_OK else {'error': data}
@@ -817,6 +1046,27 @@ async def get_option_condor(symbol: str, expiry: str, strike_price: float) -> Di
             - US: US stocks
         expiry: Option expiration date in format "YYYY-MM-DD"
         strike_price: Strike price of the option
+        
+    Returns:
+        Dict containing condor strategy data including:
+        - strategy_name: Strategy name
+        - option_list: List of options in the strategy
+        - risk_metrics: Risk metrics for the strategy
+        - profit_loss: Profit/loss analysis
+        
+    Raises:
+        - INVALID_PARAM: Invalid parameter
+        - INVALID_MARKET: Invalid market code
+        - INVALID_STOCKCODE: Invalid stock code
+        - INVALID_EXPIRYDATE: Invalid expiry date
+        - INVALID_STRIKEPRICE: Invalid strike price
+        - GET_OPTION_CONDOR_FAILED: Failed to get condor data
+        
+    Note:
+        - Condor is a neutral options trading strategy
+        - Involves four different strike prices
+        - Limited risk and limited profit potential
+        - Best used in low volatility environments
     """
     ret, data = quote_ctx.get_option_condor(symbol, expiry, strike_price)
     return data.to_dict() if ret == RET_OK else {'error': data}
@@ -832,6 +1082,28 @@ async def get_option_butterfly(symbol: str, expiry: str, strike_price: float) ->
             - US: US stocks
         expiry: Option expiration date in format "YYYY-MM-DD"
         strike_price: Strike price of the option
+        
+    Returns:
+        Dict containing butterfly strategy data including:
+        - strategy_name: Strategy name
+        - option_list: List of options in the strategy
+        - risk_metrics: Risk metrics for the strategy
+        - profit_loss: Profit/loss analysis
+        
+    Raises:
+        - INVALID_PARAM: Invalid parameter
+        - INVALID_MARKET: Invalid market code
+        - INVALID_STOCKCODE: Invalid stock code
+        - INVALID_EXPIRYDATE: Invalid expiry date
+        - INVALID_STRIKEPRICE: Invalid strike price
+        - GET_OPTION_BUTTERFLY_FAILED: Failed to get butterfly data
+        
+    Note:
+        - Butterfly is a neutral options trading strategy
+        - Involves three different strike prices
+        - Limited risk and limited profit potential
+        - Maximum profit at middle strike price
+        - Best used when expecting low volatility
     """
     ret, data = quote_ctx.get_option_butterfly(symbol, expiry, strike_price)
     return data.to_dict() if ret == RET_OK else {'error': data}
@@ -901,7 +1173,7 @@ async def get_market_state(market: str) -> Dict[str, Any]:
     Returns:
         Dict containing market state information including:
         - market: Market code
-        - market_state: Market state
+        - market_state: Market state code
             - NONE: Market not available
             - AUCTION: Auction period
             - WAITING_OPEN: Waiting for market open
@@ -913,8 +1185,20 @@ async def get_market_state(market: str) -> Dict[str, Any]:
             - PRE_MARKET_END: Pre-market end
             - AFTER_HOURS_BEGIN: After-hours begin
             - AFTER_HOURS_END: After-hours end
-        - begin_time: State begin time
-        - end_time: State end time
+        - market_state_desc: Description of market state
+        - update_time: Update time (YYYY-MM-DD HH:mm:ss)
+        
+    Raises:
+        - INVALID_PARAM: Invalid parameter
+        - INVALID_MARKET: Invalid market code
+        - GET_MARKET_STATE_FAILED: Failed to get market state
+        
+    Note:
+        - Market state is updated in real-time
+        - Different markets have different trading hours
+        - Consider timezone differences
+        - Market state affects trading operations
+        - Recommended to check state before trading
     """
     ret, data = quote_ctx.get_market_state(market)
     return data.to_dict() if ret == RET_OK else {'error': data}
@@ -933,12 +1217,38 @@ async def get_security_info(market: str, code: str) -> Dict[str, Any]:
     
     Returns:
         Dict containing security information including:
-        - Name
-        - Lot size
-        - Stock type
-        - Total shares
-        - Listing date
-        - Industry
+        - stock_code: Stock code
+        - stock_name: Stock name
+        - market: Market code
+        - stock_type: Stock type (e.g., "STOCK", "ETF", "WARRANT")
+        - stock_child_type: Stock subtype (e.g., "MAIN_BOARD", "GEM")
+        - list_time: Listing date
+        - delist_time: Delisting date (if applicable)
+        - lot_size: Lot size
+        - stock_owner: Company name
+        - issue_price: IPO price
+        - issue_size: IPO size
+        - net_profit: Net profit
+        - net_profit_growth: Net profit growth rate
+        - revenue: Revenue
+        - revenue_growth: Revenue growth rate
+        - eps: Earnings per share
+        - pe_ratio: Price-to-earnings ratio
+        - pb_ratio: Price-to-book ratio
+        - dividend_ratio: Dividend ratio
+        - stock_derivatives: List of related derivatives
+        
+    Raises:
+        - INVALID_PARAM: Invalid parameter
+        - INVALID_MARKET: Invalid market code
+        - INVALID_STOCKCODE: Invalid stock code
+        - GET_STOCK_BASICINFO_FAILED: Failed to get stock information
+        
+    Note:
+        - Contains static information about the security
+        - Financial data may be delayed
+        - Some fields may be empty for certain security types
+        - Important for fundamental analysis
     """
     ret, data = quote_ctx.get_security_info(market, code)
     return data.to_dict() if ret == RET_OK else {'error': data}
@@ -953,6 +1263,31 @@ async def get_security_list(market: str) -> Dict[str, Any]:
             - "US": US market
             - "SH": Shanghai market
             - "SZ": Shenzhen market
+            
+    Returns:
+        Dict containing list of securities:
+        - security_list: List of securities, each containing:
+            - code: Security code
+            - name: Security name
+            - lot_size: Lot size
+            - stock_type: Security type
+            - list_time: Listing date
+            - stock_id: Security ID
+            - delisting: Whether delisted
+            - main_contract: Whether it's the main contract (futures)
+            - last_trade_time: Last trade time (futures/options)
+            
+    Raises:
+        - INVALID_PARAM: Invalid parameter
+        - INVALID_MARKET: Invalid market code
+        - GET_SECURITY_LIST_FAILED: Failed to get security list
+        
+    Note:
+        - Returns all securities in the specified market
+        - Includes stocks, ETFs, warrants, etc.
+        - Updated daily
+        - Useful for market analysis and monitoring
+        - Consider caching results for better performance
     """
     ret, data = quote_ctx.get_security_list(market)
     return data.to_dict() if ret == RET_OK else {'error': data}
