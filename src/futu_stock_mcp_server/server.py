@@ -234,7 +234,7 @@ def init_quote_connection():
                 host=os.getenv('FUTU_HOST', '127.0.0.1'),
                 port=int(os.getenv('FUTU_PORT', '11111'))
             )
-            ret, _ = temp_ctx.get_global_state()
+            ret, data, page_req_key = temp_ctx.request_history_kline('HK.00700', start='2019-09-11', end='2019-09-18', max_count=5)
             temp_ctx.close()
             if ret != RET_OK:
                 logger.error("OpenD is not running or not accessible")
@@ -264,25 +264,22 @@ def init_trade_connection():
         return True
         
     try:
-        # Initialize trade context with proper market access
-        trade_env = os.getenv('FUTU_TRADE_ENV', 'SIMULATE')
+        # Initialize trade context with proper market access REAL SIMULATE
+        trade_env = os.getenv('FUTU_TRADE_ENV', 'REAL')
         security_firm = getattr(SecurityFirm, os.getenv('FUTU_SECURITY_FIRM', 'FUTUSECURITIES'))
         
-        # 只支持港股和美股
+        # 只支持港股
         market_map = {
-            'HK': 1,  # TrdMarket.HK
-            'US': 2   # TrdMarket.US
+            'HK': 1  # TrdMarket.HK
+            #'US': 2   # TrdMarket.US
         }
-        trd_market = market_map.get(os.getenv('FUTU_TRD_MARKET', 'HK'), 1)
+        trd_market = market_map.get(os.getenv('FUTU_TRD_MARKET', 'HK'), "TrdMarket.HK")
+        logger.info(f"trd_market: {trd_market}")
         
         # 创建交易上下文
-        trade_ctx = OpenSecTradeContext(
-            filter_trdmarket=trd_market,
-            host=os.getenv('FUTU_HOST', '127.0.0.1'),
-            port=int(os.getenv('FUTU_PORT', '11111')),
-            security_firm=security_firm
-        )
-            
+        trade_ctx = OpenSecTradeContext(filter_trdmarket=TrdMarket.HK, 
+                                        host='127.0.0.1', port=11111, 
+                                        security_firm=SecurityFirm.FUTUSECURITIES)
         # 等待连接就绪
         time.sleep(1)
             
@@ -291,10 +288,10 @@ def init_trade_connection():
             raise Exception("Failed to create trade context")
             
         # Set trade environment
-        if hasattr(trade_ctx, 'set_trade_env'):
-            ret, data = trade_ctx.set_trade_env(trade_env)
-            if ret != RET_OK:
-                logger.warning(f"Failed to set trade environment: {data}")
+        # if hasattr(trade_ctx, 'set_trade_env'):
+        #     ret, data = trade_ctx.set_trade_env(trade_env)
+        #     if ret != RET_OK:
+        #         logger.warning(f"Failed to set trade environment: {data}")
                 
         # Verify account access and permissions
         ret, data = trade_ctx.get_acc_list()
@@ -315,24 +312,6 @@ def init_trade_connection():
             accounts = data
             
         logger.info(f"Found {len(accounts)} trading account(s)")
-        
-        # 检查账户状态
-        for acc in accounts:
-            if isinstance(acc, dict):
-                acc_id = acc.get('acc_id', 'Unknown')
-                acc_type = acc.get('acc_type', 'Unknown')
-                acc_state = acc.get('acc_state', 'Unknown')
-                trd_env = acc.get('trd_env', 'Unknown')
-                trd_market = acc.get('trd_market', 'Unknown')
-            else:
-                acc_id = getattr(acc, 'acc_id', 'Unknown')
-                acc_type = getattr(acc, 'acc_type', 'Unknown')
-                acc_state = getattr(acc, 'acc_state', 'Unknown')
-                trd_env = getattr(acc, 'trd_env', 'Unknown')
-                trd_market = getattr(acc, 'trd_market', 'Unknown')
-                
-            logger.info(f"Account: {acc_id}, Type: {acc_type}, State: {acc_state}, Environment: {trd_env}, Market: {trd_market}")
-        
         _is_trade_initialized = True
         logger.info(f"Successfully initialized trade connection (Trade Environment: {trade_env}, Security Firm: {security_firm}, Market: {trd_market})")
         return True
