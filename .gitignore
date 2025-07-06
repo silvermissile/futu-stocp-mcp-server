@@ -39,3 +39,5 @@ logs/
 
 # Local development
 .DS_Store 
+.futu_mcp.lock
+.futu_mcp.pid

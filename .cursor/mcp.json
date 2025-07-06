@@ -1,18 +1,7 @@
 {
   "mcpServers": {
-    "futu": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        ".",
-        "run",
-        "src/futu_stock_mcp_server/server.py"
-      ],
-      "env": {
-        "FUTU_HOST": "127.0.0.1",
-        "FUTU_PORT": "11111",
-        "PYTHONPATH": "./src"
-      }
+    "futu_sth": {
+      "url": "http://127.0.0.1:8000/mcp/"
     }
   }
-} 
+}

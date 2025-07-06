@@ -8,9 +8,8 @@ from loguru import logger
 import os
 import sys
 from dotenv import load_dotenv
-from mcp.server.fastmcp import FastMCP
-from mcp.types import TextContent, PromptMessage
-from mcp.server import Server
+from fastmcp import FastMCP
+
 import atexit
 import signal
 import fcntl
@@ -327,7 +326,7 @@ def init_futu_connection():
     return init_quote_connection()
 
 @asynccontextmanager
-async def lifespan(server: Server):
+async def lifespan(server):
     # Startup - only initialize quote connection
     if not init_quote_connection():
         logger.error("Failed to initialize quote connection")
@@ -1418,6 +1417,7 @@ async def get_current_time() -> Dict[str, Any]:
     }
 
 if __name__ == "__main__":
+    import sys
     try:
         # 清理旧的进程和文件
         cleanup_stale_processes()
@@ -1435,15 +1435,18 @@ if __name__ == "__main__":
         logger.info("Initializing Futu connection...")
         if init_futu_connection():
             logger.info("Successfully initialized Futu connection")
-            logger.info("Starting MCP server in stdio mode...")
-            try:
-                mcp.run(transport='stdio')
-            except KeyboardInterrupt:
-                logger.info("Received keyboard interrupt, shutting down...")
-                sys.exit(0)
-            except Exception as e:
-                logger.error(f"Error running server: {str(e)}")
-                sys.exit(1)
+            logger.info("Starting MCP server...")
+            mcp.run(host="0.0.0.0", transport="streamable-http", port=8000)
+            # 支持 http/stdio 两种模式
+            # if len(sys.argv) > 1 and sys.argv[1] == "http":
+            #     import os
+            #     host = os.getenv("MCP_HTTP_HOST", "0.0.0.0")
+            #     port = int(os.getenv("MCP_HTTP_PORT", "8000"))
+            #     logger.info(f"Starting MCP server in HTTP mode at http://{host}:{port}/mcp")
+            #     mcp.run(transport="http", host=host, port=port, path="/mcp")
+            # else:
+            #     logger.info("Starting MCP server in stdio mode...")
+            #     mcp.run(transport='stdio')
         else:
             logger.error("Failed to initialize Futu connection. Server will not start.")
             sys.exit(1)
